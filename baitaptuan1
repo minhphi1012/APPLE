@@ -1,0 +1,108 @@
+Câu 1: Mong muốn và định hướng của Bạn là gì sau khi học xong môn học là gì?
+
+Mong muốn:  Muốn đạt được điều gì cụ thể nắm vững kiến thức, có thể tự làm dự án, đạt điểm cao, tìm được việc làm 
+
+Định hướng: Bạn dự định áp dụng kiến thức và kỹ năng đã học trong tương lai phát triển sự nghiệp ....
+
+Câu 2: Theo bạn, trong tương lai gần (10 năm) lập trình di động có phát triển không? Giải thích tại sao?
+Quan điểm:
+
+Có phát triển: Nếu bạn tin rằng lập trình di động sẽ tiếp tục lớn mạnh.
+
+Giải thích (tại sao):
+
+Nếu chọn Có phát triển: Lý giải dựa trên các yếu tố như sự gia tăng của người dùng điện thoại thông minh, sự phổ biến của ứng dụng trong mọi lĩnh vực đời sống (thương mại điện tử, y tế, giáo dục, giải trí), sự phát triển của công nghệ mới (5G, IoT, AI tích hợp trên thiết bị di động), và nhu cầu về trải nghiệm người dùng tối ưu.
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const ProfileScreen(),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Thanh top bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // BACK BUTTON
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.arrow_back),
+                  ),
+
+                  // EDIT BUTTON
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.edit),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // AVATAR
+            CircleAvatar(
+              radius: 60,
+              backgroundImage: NetworkImage(
+                "https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/avatar-dep-1.jpg",
+              ),
+            ),
+
+
+
+            const SizedBox(height: 20),
+
+            // TÊN
+            const Text(
+              "Johan Smith",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            // ĐỊA CHỈ
+            const Text(
+              "California, USA",
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
