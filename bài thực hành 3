@@ -1,0 +1,305 @@
+package com.example.thuchanh03
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.thuchanh03.ui.theme.ThucHanh03Theme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            ThucHanh03Theme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    CalculatorScreen(modifier = Modifier.padding(innerPadding))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CalculatorScreen(modifier: Modifier = Modifier) {
+    var number1 by remember { mutableStateOf("") }
+    var number2 by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("Kết quả: ") }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        // Ô nhập số thứ nhất
+        OutlinedTextField(
+            value = number1,
+            onValueChange = { number1 = it },
+            label = { Text("Nhập số thứ nhất") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center
+            )
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Hàng 4 nút phép toán
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Button(
+                onClick = {
+                    calculate(number1, number2, "+", onResult = { result = "Kết quả: $it" }, onError = { result = it })
+                },
+                modifier = Modifier.size(70.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722))
+            ) {
+                Text("+", fontSize = 28.sp, color = Color.White)
+            }
+
+            Button(
+                onClick = {
+                    calculate(number1, number2, "-", onResult = { result = "Kết quả: $it" }, onError = { result = it })
+                },
+                modifier = Modifier.size(70.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Text("-", fontSize = 28.sp, color = Color.White)
+            }
+
+            Button(
+                onClick = {
+                    calculate(number1, number2, "×", onResult = { result = "Kết quả: $it" }, onError = { result = it })
+                },
+                modifier = Modifier.size(70.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+            ) {
+                Text("×", fontSize = 28.sp, color = Color.White)
+            }
+
+            Button(
+                onClick = {
+                    calculate(number1, number2, "/", onResult = { result = "Kết quả: $it" }, onError = { result = it })
+                },
+                modifier = Modifier.size(70.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF212121))
+            ) {
+                Text("/", fontSize = 28.sp, color = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Ô nhập số thứ hai
+        OutlinedTextField(
+            value = number2,
+            onValueChange = { number2 = it },
+            label = { Text("Nhập số thứ hai") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center
+            )
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Kết quả
+        Text(
+            text = result,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+// Hàm tính toán chung
+private fun calculate(
+    num1Str: String,
+    num2Str: String,
+    operation: String,
+    onResult: (String) -> Unit,  // Thay Double thành String
+    onError: (String) -> Unit
+) {
+    if (num1Str.isBlank() || num2Str.isBlank()) {
+        onError("Kết quả: Vui lòng nhập đủ hai số!")
+        return
+    }
+
+    val num1 = num1Str.toDoubleOrNull()
+    val num2 = num2Str.toDoubleOrNull()
+
+    if (num1 == null || num2 == null) {
+        onError("Kết quả: Vui lòng nhập số hợp lệ!")
+        return
+    }
+
+    val rawResult = when (operation) {
+        "+" -> num1 + num2
+        "-" -> num1 - num2
+        "×" -> num1 * num2
+        "/" -> {
+            if (num2 == 0.0) {
+                onError("Kết quả: Không thể chia cho 0!")
+                return
+            }
+            num1 / num2
+        }
+        else -> 0.0
+    }
+
+    // Phần quan trọng: format bỏ .0 nếu là số nguyên
+    val formattedResult = if (rawResult % 1 == 0.0) {
+        rawResult.toLong().toString()  // 8.0 → "8"
+    } else {
+        rawResult.toString()           // 3.333 → "3.3333333333333335"
+    }
+
+    onResult(" $formattedResult")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CalculatorPreview() {
+    ThucHanh03Theme {
+        CalculatorScreen()
+    }
+}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <!-- Ô nhập số 1 – giới hạn chiều rộng tối đa để hết cảnh báo -->
+    <EditText
+        android:id="@+id/editNumber1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:maxWidth="500dp"
+        android:hint="Nhập số thứ nhất"
+        android:inputType="numberDecimal|numberSigned"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:autofillHints="number"
+        tools:ignore="HardcodedText,MissingAutofillHints,TextFieldSize" />
+
+    <!-- Hàng nút phép toán -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        style="?android:attr/buttonBarStyle"
+        tools:ignore="HardcodedText">
+
+        <Button
+            android:id="@+id/btnAdd"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:text="+"
+            android:textSize="28sp"
+            android:backgroundTint="#FF5722"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnSubtract"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:text="-"
+            android:textSize="28sp"
+            android:layout_marginStart="20dp"
+            android:backgroundTint="#FFC107"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnMultiply"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:text="×"
+            android:textSize="28sp"
+            android:layout_marginStart="20dp"
+            android:backgroundTint="#9C27B0"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnDivide"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:text="/"
+            android:textSize="28sp"
+            android:layout_marginStart="20dp"
+            android:backgroundTint="#212121"
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+
+    <!-- Ô nhập số 2 – tương tự ô 1 -->
+    <EditText
+        android:id="@+id/editNumber2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:maxWidth="500dp"
+        android:hint="Nhập số thứ hai"
+        android:inputType="numberDecimal|numberSigned"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="48dp"
+        android:autofillHints="number"
+        tools:ignore="HardcodedText,MissingAutofillHints,TextFieldSize" />
+
+    <!-- Kết quả -->
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kết quả: "
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:gravity="start|center_vertical"
+        android:paddingStart="20dp"
+        tools:ignore="HardcodedText" />
+
+</LinearLayout>
