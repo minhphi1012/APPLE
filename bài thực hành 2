@@ -1,0 +1,214 @@
+package com.example.thuchanh02
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.thuchanh02.ui.theme.Thuchanh02Theme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            Thuchanh02Theme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ThucHanh02Screen()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ThucHanh02Screen() {
+    var soLuongText by remember { mutableStateOf("") }
+    var danhSachSo by remember { mutableStateOf<List<Int>>(emptyList()) }
+    var hienThiLoi by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 32.dp), // Giảm padding dọc một chút
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Thực hành 02",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        // Phần nhập và nút Tạo
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            OutlinedTextField(
+                value = soLuongText,
+                onValueChange = {
+                    soLuongText = it
+                    hienThiLoi = false
+                },
+                label = { Text("Nhập vào số lượng") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp)
+            )
+
+            Button(
+                onClick = {
+                    val input = soLuongText.trim()
+                    if (input.isEmpty()) {
+                        hienThiLoi = true
+                        danhSachSo = emptyList()
+                        return@Button
+                    }
+                    val n = input.toIntOrNull()
+                    if (n == null || n <= 0) {
+                        hienThiLoi = true
+                        danhSachSo = emptyList()
+                    } else {
+                        hienThiLoi = false
+                        danhSachSo = (1..n).toList()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
+                modifier = Modifier.height(56.dp) // Cân bằng chiều cao với TextField
+            ) {
+                Text("Tạo", fontSize = 18.sp, color = Color.White)
+            }
+        }
+
+        // Thông báo lỗi
+        if (hienThiLoi) {
+            Text(
+                text = "Dữ liệu bạn nhập không hợp lệ",
+                color = Color(0xFFD32F2F),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        }
+
+        // Danh sách button đỏ
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp), // Khoảng cách giữa các button
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(danhSachSo) { so ->
+                Button(
+                    onClick = { },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)), // Đỏ đậm hơn giống hình
+                    shape = MaterialTheme.shapes.medium, // Bo tròn vừa phải
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f) // Chiếm 90% chiều rộng → sát cạnh, đẹp mắt
+                        .height(70.dp)
+                ) {
+                    Text(
+                        text = so.toString(),
+                        fontSize = 28.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ThucHanh02Preview() {
+    Thuchanh02Theme {
+        ThucHanh02Screen()
+    }
+}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <!-- Phần nhập số lượng và nút Tạo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="32dp">
+
+        <EditText
+            android:id="@+id/editSoLuong"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Nhập vào số lượng"
+            android:inputType="number"
+            android:background="@android:drawable/edit_text"
+            android:padding="12dp"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnTao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tạo"
+            android:textSize="18sp"
+            android:backgroundTint="#2196F3"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="12dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp" />
+
+    </LinearLayout>
+
+    <!-- Thông báo lỗi -->
+    <TextView
+        android:id="@+id/tvThongBao"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dữ liệu bạn nhập không hợp lệ"
+        android:textColor="#D32F2F"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginBottom="32dp" />
+
+    <!-- LinearLayout dọc để chứa các button số (1,2,3,...) -->
+    <LinearLayout
+        android:id="@+id/linearList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Các button sẽ được thêm động bằng code Kotlin -->
+
+    </LinearLayout>
+
+</LinearLayout>                      
