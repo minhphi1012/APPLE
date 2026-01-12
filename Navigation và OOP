@@ -1,0 +1,371 @@
+package com.example.uthsmarttasks.adapter
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.uthsmarttasks.R
+import com.example.uthsmarttasks.model.OnboardingItem
+
+class OnboardingAdapter(private val onboardingItems: List<OnboardingItem>) :
+    RecyclerView.Adapter<OnboardingAdapter.OnboardingViewHolder>() {
+
+    inner class OnboardingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val imageOnboarding = view.findViewById<ImageView>(R.id.imageOnboarding)
+        private val textTitle = view.findViewById<TextView>(R.id.textTitle)
+        private val textDescription = view.findViewById<TextView>(R.id.textDescription)
+
+        fun bind(onboardingItem: OnboardingItem) {
+            textTitle.text = onboardingItem.title
+            textDescription.text = onboardingItem.description
+            imageOnboarding.setImageResource(onboardingItem.image)
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OnboardingViewHolder {
+        return OnboardingViewHolder(
+            LayoutInflater.from(parent.context).inflate(
+                R.layout.item_container_onboarding, parent, false
+            )
+        )
+    }
+
+    override fun onBindViewHolder(holder: OnboardingViewHolder, position: Int) {
+        holder.bind(onboardingItems[position])
+    }
+
+    override fun getItemCount(): Int = onboardingItems.size
+}
+
+package com.example.uthsmarttasks.model
+
+data class OnboardingItem(
+    val image: Int,       // ID của hình ảnh
+    val title: String,    // Tiêu đề (VD: Easy Time Management)
+    val description: String // Mô tả chi tiết bên dưới
+)
+
+package com.example.uthsmarttasks.view
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.ViewPager2
+import com.example.uthsmarttasks.MainActivity
+import com.example.uthsmarttasks.R
+import com.example.uthsmarttasks.adapter.OnboardingAdapter
+import com.example.uthsmarttasks.model.OnboardingItem
+
+class OnboardingActivity : AppCompatActivity() {
+
+    private lateinit var onboardingAdapter: OnboardingAdapter
+    private lateinit var layoutIndicators: LinearLayout
+    private lateinit var buttonNext: Button
+    private lateinit var buttonBack: ImageView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_onboarding)
+
+        layoutIndicators = findViewById(R.id.layoutIndicators)
+        buttonNext = findViewById(R.id.buttonNext)
+        buttonBack = findViewById(R.id.buttonBack)
+        val textSkip = findViewById<TextView>(R.id.textSkip)
+        val viewPager = findViewById<ViewPager2>(R.id.onboardingViewPager)
+
+        setupOnboardingItems(viewPager)
+        setupIndicators()
+        setCurrentIndicator(0)
+
+        // Xử lý sự kiện khi trượt trang
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                setCurrentIndicator(position)
+
+                // Logic hiển thị nút Back và đổi text nút Next
+                if (position == 0) {
+                    buttonBack.visibility = View.INVISIBLE
+                    buttonNext.text = "Next"
+                } else if (position == onboardingAdapter.itemCount - 1) {
+                    buttonBack.visibility = View.VISIBLE
+                    buttonNext.text = "Get Started"
+                } else {
+                    buttonBack.visibility = View.VISIBLE
+                    buttonNext.text = "Next"
+                }
+            }
+        })
+
+        // Nút Next
+        buttonNext.setOnClickListener {
+            if (viewPager.currentItem + 1 < onboardingAdapter.itemCount) {
+                viewPager.currentItem += 1
+            } else {
+                navigateToHome()
+            }
+        }
+
+        // Nút Back (Mũi tên quay lại)
+        buttonBack.setOnClickListener {
+            if (viewPager.currentItem > 0) {
+                viewPager.currentItem -= 1
+            }
+        }
+
+        // Nút Skip
+        textSkip.setOnClickListener {
+            navigateToHome()
+        }
+    }
+
+    // Thiết lập dữ liệu (OOP)
+    private fun setupOnboardingItems(viewPager: ViewPager2) {
+        val onboardingItems = listOf(
+            OnboardingItem(
+                R.drawable.img_onboarding1,
+                "Easy Time Management",
+                "With management based on priority and daily tasks , it will give you convenience in managing and determining the tasks that must be done first"
+            ),
+            OnboardingItem(
+                R.drawable.img_onboarding2,
+                "Increase Work Effectiveness",
+                "Time management and determination of more important tasks will give your job statistics better and always improve"
+            ),
+            OnboardingItem(
+                R.drawable.img_onboarding3,
+                "Reminder Notification",
+                "The advantage of this application is that it also provides reminders for you so you don't forget to keep doing your assignments well and according to the time you have set"
+            )
+        )
+        onboardingAdapter = OnboardingAdapter(onboardingItems)
+        viewPager.adapter = onboardingAdapter
+    }
+
+    // Tạo các dấu chấm động
+    private fun setupIndicators() {
+        val indicators = arrayOfNulls<ImageView>(onboardingAdapter.itemCount)
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.setMargins(8, 0, 8, 0)
+        for (i in indicators.indices) {
+            indicators[i] = ImageView(applicationContext)
+            indicators[i]?.setImageDrawable(
+                ContextCompat.getDrawable(applicationContext, R.drawable.indicator_inactive) // Cần tạo drawable này
+            )
+            indicators[i]?.layoutParams = layoutParams
+            layoutIndicators.addView(indicators[i])
+        }
+    }
+
+    // Đổi màu dấu chấm khi trang thay đổi
+    private fun setCurrentIndicator(index: Int) {
+        val childCount = layoutIndicators.childCount
+        for (i in 0 until childCount) {
+            val imageView = layoutIndicators.getChildAt(i) as ImageView
+            if (i == index) {
+                imageView.setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.indicator_active)) // Màu xanh
+            } else {
+                imageView.setImageDrawable(ContextCompat.getDrawable(applicationContext, R.drawable.indicator_inactive)) // Màu xám
+            }
+        }
+    }
+
+    private fun navigateToHome() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+}
+
+package com.example.uthsmarttasks.view
+
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.appcompat.app.AppCompatActivity
+import com.example.uthsmarttasks.R
+
+class SplashActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_splash)
+
+        // Chờ 2 giây (2000ms) rồi chuyển trang
+        Handler(Looper.getMainLooper()).postDelayed({
+            val intent = Intent(this, OnboardingActivity::class.java)
+            startActivity(intent)
+            finish() // Đóng Splash để không quay lại được
+        }, 2000)
+    }
+}
+
+package com.example.uthsmarttasks
+
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+    }
+}
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/layoutIndicators"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="20dp" />
+
+    <TextView
+        android:id="@+id/textSkip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="skip"
+        android:textColor="#2196F3"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="20dp"/>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/onboardingViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/layoutBottom"
+        android:layout_below="@id/layoutIndicators"/>
+
+    <RelativeLayout
+        android:id="@+id/layoutBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/buttonBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_button"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:visibility="invisible" />
+
+        <Button
+            android:id="@+id/buttonNext"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="63dp"
+            android:backgroundTint="#2196F3"
+            android:text="Next" />
+    </RelativeLayout>
+</RelativeLayout>
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/logo_uth"
+        android:layout_centerInParent="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imgLogo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="UTH SmartTasks"
+        android:textColor="#005a8d"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+</RelativeLayout>
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="30dp">
+
+    <ImageView
+        android:id="@+id/imageOnboarding"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/img_onboarding1"
+        android:layout_marginBottom="30dp"/>
+
+    <TextView
+        android:id="@+id/textTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Title Here"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginBottom="15dp"/>
+
+    <TextView
+        android:id="@+id/textDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description goes here..."
+        android:textSize="14sp"
+        android:textColor="#757575"
+        android:textAlignment="center"/>
+</LinearLayout>
